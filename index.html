@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSA Encryption</title>
+</head>
+<body>
+  <h2>RSA Encryption Example</h2>
+  
+  <label for="p">Enter p:</label>
+  <input type="text" id="p" placeholder="Enter p">
+
+  <label for="q">Enter q:</label>
+  <input type="text" id="q" placeholder="Enter q">
+
+  <label for="e">Enter e:</label>
+  <input type="text" id="e" placeholder="Enter e">
+
+  <button onclick="generateKeys()">Generate Keys</button>
+
+  <p>n: <span id="n"></span></p>
+  <p>d: <span id="d"></span></p>
+
+  <label for="message">Enter Message:</label>
+  <input type="text" id="message" placeholder="Enter your message">
+
+  <button onclick="encrypt()">Encrypt</button>
+  <button onclick="decrypt()">Decrypt</button>
+
+  <p>Encrypted Message: <span id="encrypted"></span></p>
+  <p>Decrypted Message: <span id="decrypted"></span></p>
+
+  <script>
+    let publicKey;
+    let privateKey;
+
+    // Function to generate key pairs
+    function generateKeys() {
+      const p = parseInt(document.getElementById('p').value);
+      const q = parseInt(document.getElementById('q').value);
+      const e = parseInt(document.getElementById('e').value);
+
+      const n = p * q;
+      const phi = (p - 1) * (q - 1);
+      
+      let d = modInverse(e, phi);
+
+      publicKey = { n, e };
+      privateKey = { n, d };
+
+      document.getElementById('n').innerText = n;
+      document.getElementById('d').innerText = d;
+    }
+
+    // Function to encrypt a message
+    function encrypt() {
+      const message = document.getElementById('message').value;
+
+      let encryptedMessage = '';
+      for (let i = 0; i < message.length; i++) {
+        const charCode = message.charCodeAt(i);
+        const encryptedCharCode = modPow(charCode, publicKey.e, publicKey.n);
+        encryptedMessage += encryptedCharCode.toString() + ' ';
+      }
+
+      document.getElementById('encrypted').innerText = encryptedMessage.trim();
+    }
+
+    // Function to decrypt a message
+    function decrypt() {
+      const encryptedMessage = document.getElementById('encrypted').innerText;
+
+      const encryptedCodes = encryptedMessage.split(' ');
+      let decryptedMessage = '';
+      for (let i = 0; i < encryptedCodes.length; i++) {
+        const encryptedCharCode = parseInt(encryptedCodes[i]);
+        const decryptedCharCode = modPow(encryptedCharCode, privateKey.d, privateKey.n);
+        decryptedMessage += String.fromCharCode(decryptedCharCode);
+      }
+
+      document.getElementById('decrypted').innerText = decryptedMessage;
+    }
+
+    // Function to calculate modular exponentiation
+    function modPow(base, exponent, modulus) {
+      if (modulus === 1) return 0;
+      let result = 1;
+      base = base % modulus;
+      while (exponent > 0) {
+        if (exponent % 2 === 1) {
+          result = (result * base) % modulus;
+        }
+        exponent = exponent >> 1;
+        base = (base * base) % modulus;
+      }
+      return result;
+    }
+
+    // Function to calculate the modular inverse
+    function modInverse(a, m) {
+      for (let i = 1; i < m; i++) {
+        if ((a * i) % m === 1) {
+          return i;
+        }
+      }
+      return 1;
+    }
+  </script>
+</body>
+</html>
